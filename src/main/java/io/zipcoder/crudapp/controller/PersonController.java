@@ -29,7 +29,7 @@ public class PersonController {
 
     @GetMapping("/people/{id}")
     public ResponseEntity<Person> getPerson(@PathVariable int id) {
-        Person personData = personRepository.findOne(id);
+        Person personData = personRepository.findById(id).orElse(null);
         if (personData != null) {
             return new ResponseEntity<>(personData, HttpStatus.OK);
         } else {
@@ -53,14 +53,17 @@ public class PersonController {
     public ResponseEntity<Person> updatePerson(@RequestBody Person newPersonData) {
         int id = newPersonData.getId();
 
-        if (personRepository.exists(id)) {
-            Person updatedPerson = personRepository.findOne(id);
-            updatedPerson.setFirstName(newPersonData.getFirstName());
-            updatedPerson.setLastName(newPersonData.getLastName());
+        if (personRepository.existsById(id)) {
+            Person updatedPerson = personRepository.findById(id).orElse(null);
+            if (updatedPerson != null) {
+                updatedPerson.setFirstName(newPersonData.getFirstName());
+                updatedPerson.setLastName(newPersonData.getLastName());
 
-            Person newUpdatedPerson = personRepository.save(updatedPerson);
-            return new ResponseEntity<>(newUpdatedPerson, HttpStatus.OK);
-        } else if (!personRepository.exists(id)){
+
+                Person newUpdatedPerson = personRepository.save(updatedPerson);
+                return new ResponseEntity<>(newUpdatedPerson, HttpStatus.OK);
+            }
+        } else if (!personRepository.existsById(id)) {
             personRepository.save(newPersonData);
             return new ResponseEntity<>(newPersonData, HttpStatus.CREATED);
         }
@@ -70,7 +73,7 @@ public class PersonController {
 
     @DeleteMapping("/people/{id}")
     public ResponseEntity<HttpStatus> DeletePerson(@PathVariable int id) {
-        personRepository.delete(id);
+        personRepository.deleteById(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 
     }
